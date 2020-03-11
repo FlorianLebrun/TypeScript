@@ -165,8 +165,26 @@ const buildServices = (() => {
         .pipe(rename("typescript_standalone.d.ts"))
         .pipe(dest("built/local"));
 
+    // create tscompiler.js
+    const createTypescriptCompilerJs = () => src("built/local/compiler.js")
+        .pipe(newer("built/local/tscompiler.js"))
+        .pipe(append("\nif (typeof module !== \"undefined\" && module.exports) {module.exports = ts;}"))
+        .pipe(sourcemaps.init({ loadMaps: true }))
+        .pipe(rename("tscompiler.js"))
+        .pipe(sourcemaps.write(".", { includeContent: false, destPath: "built/local" }))
+        .pipe(dest("built/local"));
+
+    // create tscompiler.d.ts
+    const createTypescriptCompilerDts = () => src("built/local/compiler.d.ts")
+        .pipe(newer("built/local/tscompiler.d.ts"))
+        .pipe(append("\nexport = ts;"))
+        .pipe(rename("tscompiler.d.ts"))
+        .pipe(dest("built/local"));
+
     return series(
         buildTypescriptServicesOut,
+        createTypescriptCompilerJs,
+        createTypescriptCompilerDts,
         createTypescriptServicesJs,
         createTypescriptServicesDts,
         createTypescriptJs,
